@@ -77,7 +77,7 @@ function toDbPayload(data) {
   }
 }
 
-export default function PostForm({ open, onClose, post }) {
+export default function PostForm({ open, onClose, post, onSuccess }) {
   const isEdit = Boolean(post?.id)
   const createPost = useCreatePost()
   const updatePost = useUpdatePost()
@@ -106,11 +106,13 @@ export default function PostForm({ open, onClose, post }) {
   async function onSubmit(data) {
     const payload = toDbPayload(data)
     try {
+      let saved
       if (isEdit) {
-        await updatePost.mutateAsync({ id: post.id, ...payload })
+        saved = await updatePost.mutateAsync({ id: post.id, ...payload })
       } else {
-        await createPost.mutateAsync(payload)
+        saved = await createPost.mutateAsync(payload)
       }
+      await onSuccess?.(saved)
       onClose()
     } catch {
       // Errors surface via mutation state if needed later

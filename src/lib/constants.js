@@ -26,6 +26,12 @@ export const STATUSES = [
   { value: 'posted', label: 'Posted' },
 ]
 
+export const IDEA_STATUSES = [
+  { value: 'raw', label: 'Raw' },
+  { value: 'fleshed_out', label: 'Fleshed out' },
+  { value: 'assigned', label: 'Assigned' },
+]
+
 export const CAPTION_LIMITS = {
   tiktok: 2200,
   instagram: 2200,
@@ -51,6 +57,7 @@ export const SCHEDULE_TYPES = [
 export const PILLARS_BY_VALUE = toLookupMap(PILLARS)
 export const PLATFORMS_BY_VALUE = toLookupMap(PLATFORMS)
 export const STATUSES_BY_VALUE = toLookupMap(STATUSES)
+export const IDEA_STATUSES_BY_VALUE = toLookupMap(IDEA_STATUSES)
 export const POST_TYPES_BY_VALUE = toLookupMap(POST_TYPES)
 export const SCHEDULE_TYPES_BY_VALUE = toLookupMap(SCHEDULE_TYPES)
 
