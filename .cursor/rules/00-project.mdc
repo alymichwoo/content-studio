@@ -1,0 +1,95 @@
+---
+description: Core context for @alymichwoo Content Studio. Stack, brand, data model, conventions.
+alwaysApply: true
+---
+
+# @alymichwoo Content Studio
+
+A personal content planning + analytics web app for a creator at the intersection
+of CrossFit, lifestyle, AI, and human performance. Single user, maintained solo.
+
+## Stack (do not deviate without asking)
+- Frontend: React 18 + Vite + Tailwind CSS v3
+- Data + auth: Supabase (Postgres, Auth, Row Level Security), called DIRECTLY from
+  the React client. There is NO Node/Express backend.
+- The only server-side code is one Supabase Edge Function added in Phase 4 to proxy
+  the Anthropic API (so the API key is never in the browser).
+- Hosting: Vercel (frontend) + Supabase.
+
+## Required libraries (use these, don't substitute)
+- Routing: react-router-dom
+- Server data: @tanstack/react-query (never raw useEffect for fetching)
+- Drag and drop: @dnd-kit/core (NOT react-beautiful-dnd)
+- Forms + validation: react-hook-form + zod (+ @hookform/resolvers)
+- Charts (Phase 3): recharts
+- Dates: date-fns
+- Icons: lucide-react
+- PDF export (Phase 3): client-side via html2canvas + jspdf
+
+## Code conventions
+- Functional components + hooks. Clean, commented, modular — maintained solo.
+- All Supabase calls live in hooks under src/hooks (usePosts, useEvents, etc.),
+  never inline in components.
+- Security lives in Postgres RLS, not client code. Every table is scoped by user_id
+  with policy `auth.uid() = user_id`.
+- Domain vocabulary (pillars, platforms, statuses, post types, colors) is defined
+  ONCE in src/lib/constants.js and imported everywhere. Its string values must match
+  the Postgres enums exactly.
+
+## Brand & design (Unfiltered Athlete — raw, real, high performance)
+- Palette: charcoal #1C1C1E (primary), coral #FF5733 (accent, used sparingly),
+  cream #FAF9F6 (background), slate #8E8E93 (muted text/borders).
+- Pillar colors: Train #378ADD, Live #D4537E, Think #7F77DD, Feel #1D9E75, Fuel #EF9F27.
+- Font: DM Sans throughout. Headers heavy/uppercase with tight tracking for an
+  athletic, editorial feel. Coral is a sharp accent, not a flood.
+- Vibe: modern, minimal, confident. Not cutesy, not corporate.
+
+## Data model (canonical — migrations must match this)
+Enums:
+- pillar: train | live | think | feel | fuel
+- platform: tiktok | instagram | linkedin
+- post_status: idea | drafting | ready | scheduled | posted
+- post_type: reel | carousel | story | static | video
+- schedule_type: event | travel | competition | launch | personal
+- brand_status: prospect | active | past
+- campaign_status: pitching | negotiating | active | delivered | wrapped
+- payment_status: unpaid | paid
+
+Tables (every table has user_id + RLS `auth.uid() = user_id`, except profiles which
+is keyed by id):
+- profiles(id=auth.users.id, display_name, handle, created_at)
+- posts(id, user_id, title, caption, hook, notes, platforms platform[], pillar,
+    post_type, series, status, scheduled_date, posted_date,
+    deliverable_id -> deliverables (nullable, on delete set null),
+    archived bool, created_at, updated_at)
+- schedule_items(id, user_id, title, type schedule_type, start_date, end_date,
+    location, notes, created_at)  -- multi-day, calendar context only
+- brands(id, user_id, name, website, contact_name, contact_email, logo_url, notes,
+    status brand_status, created_at)
+- campaigns(id, user_id, brand_id, title, status campaign_status, start_date,
+    end_date, brief, compensation, payment_status, disclosure_required bool,
+    created_at, updated_at)
+- deliverables(id, user_id, campaign_id, platform, post_type, quantity_required,
+    due_date, notes)
+- metrics(id, user_id, post_id, platform, recorded_at, views, likes, comments,
+    shares, saves, impressions, reach, reactions, reposts, follows_gained,
+    profile_visits, created_at)  -- explicit sparse per-platform columns
+
+## Key product decisions (don't re-litigate)
+- Posts can target multiple platforms. Metrics are tracked per platform, so one post
+  can have several metric rows.
+- Captions: plain textarea with a live per-platform character counter. No rich text.
+- Engagement rate is COMPUTED IN CODE (never stored), per platform:
+    tiktok    = (likes + comments + shares) / views
+    instagram = (likes + comments + saves) / reach
+    linkedin  = (reactions + comments + reposts) / impressions
+- Posts link to a specific deliverable (deliverable-level linking) so a brief shows
+  progress like "2 of 3 reels delivered".
+- Schedule items (events/travel/competitions) are visual calendar context in v1 and
+  become inputs to the Phase 4 AI assistant later.
+- The AI assistant (Phase 4) lives behind a Supabase Edge Function. Keep a src/ai/
+  folder as the integration seam; build the real thing in Phase 4 only.
+
+## Working style
+- Build only what the current step asks for. If something is complex, propose a
+  simpler v1 first. Ask before adding libraries or changing the stack/schema.
