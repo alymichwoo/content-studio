@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './hooks/useAuth'
+import { queryClient } from './lib/queryClient'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import Calendar from './pages/Calendar'
@@ -9,8 +10,6 @@ import Ideas from './pages/Ideas'
 import Partnerships from './pages/Partnerships'
 import Dashboard from './pages/Dashboard'
 import Report from './pages/Report'
-
-const queryClient = new QueryClient()
 
 function ProtectedPage({ children }) {
   return <ProtectedRoute>{children}</ProtectedRoute>

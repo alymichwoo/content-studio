@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
+import { ALL_METRICS_QUERY_KEY } from './useAllMetrics'
 import { useAuth } from './useAuth'
 
 export const METRICS_QUERY_KEY = ['metrics']
@@ -9,7 +10,10 @@ export function metricsQueryKey(postId) {
 }
 
 function invalidateMetrics(queryClient, postId) {
-  return queryClient.invalidateQueries({ queryKey: metricsQueryKey(postId) })
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: metricsQueryKey(postId) }),
+    queryClient.invalidateQueries({ queryKey: ALL_METRICS_QUERY_KEY }),
+  ])
 }
 
 /** All metric rows for a post, newest recorded_at first. */

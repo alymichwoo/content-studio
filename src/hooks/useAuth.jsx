@@ -1,10 +1,12 @@
 /* eslint-disable react-refresh/only-export-components -- provider + hook live together */
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
+  const queryClient = useQueryClient()
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -16,13 +18,17 @@ export function AuthProvider({ children }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      setSession(nextSession)
       setLoading(false)
+
+      if (event === 'TOKEN_REFRESHED' && nextSession) {
+        queryClient.invalidateQueries()
+      }
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [queryClient])
 
   const value = useMemo(() => {
     const user = session?.user ?? null

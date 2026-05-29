@@ -4,6 +4,8 @@ import { useAuth } from './useAuth'
 
 export const POSTS_QUERY_KEY = ['posts']
 
+const STALE_TIME_MS = 60_000
+
 function invalidatePosts(queryClient) {
   return queryClient.invalidateQueries({ queryKey: POSTS_QUERY_KEY })
 }
@@ -12,6 +14,7 @@ function invalidatePosts(queryClient) {
 export function usePosts({ platform, pillar, includeArchived = false } = {}) {
   return useQuery({
     queryKey: [...POSTS_QUERY_KEY, { platform, pillar, includeArchived }],
+    staleTime: STALE_TIME_MS,
     queryFn: async () => {
       let query = supabase.from('posts').select('*').order('created_at', { ascending: false })
 
