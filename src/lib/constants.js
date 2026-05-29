@@ -54,12 +54,34 @@ export const SCHEDULE_TYPES = [
   { value: 'personal', label: 'Personal', color: '#EF9F27' },
 ]
 
+export const BRAND_STATUSES = [
+  { value: 'prospect', label: 'Prospect' },
+  { value: 'active', label: 'Active' },
+  { value: 'past', label: 'Past' },
+]
+
+export const CAMPAIGN_STATUSES = [
+  { value: 'pitching', label: 'Pitching' },
+  { value: 'negotiating', label: 'Negotiating' },
+  { value: 'active', label: 'Active' },
+  { value: 'delivered', label: 'Delivered' },
+  { value: 'wrapped', label: 'Wrapped' },
+]
+
+export const PAYMENT_STATUSES = [
+  { value: 'unpaid', label: 'Unpaid' },
+  { value: 'paid', label: 'Paid' },
+]
+
 export const PILLARS_BY_VALUE = toLookupMap(PILLARS)
 export const PLATFORMS_BY_VALUE = toLookupMap(PLATFORMS)
 export const STATUSES_BY_VALUE = toLookupMap(STATUSES)
 export const IDEA_STATUSES_BY_VALUE = toLookupMap(IDEA_STATUSES)
 export const POST_TYPES_BY_VALUE = toLookupMap(POST_TYPES)
 export const SCHEDULE_TYPES_BY_VALUE = toLookupMap(SCHEDULE_TYPES)
+export const BRAND_STATUSES_BY_VALUE = toLookupMap(BRAND_STATUSES)
+export const CAMPAIGN_STATUSES_BY_VALUE = toLookupMap(CAMPAIGN_STATUSES)
+export const PAYMENT_STATUSES_BY_VALUE = toLookupMap(PAYMENT_STATUSES)
 
 /** Per-platform engagement rate formulas (computed in code, never stored). */
 export const ENGAGEMENT_FORMULAS = {

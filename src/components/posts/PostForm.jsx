@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -10,11 +10,14 @@ import {
   POST_TYPES,
   STATUSES,
 } from '../../lib/constants'
+import { formatDeliverableLabel } from '../../lib/deliverableUtils'
 import { useCreatePost, useUpdatePost } from '../../hooks/usePosts'
+import { useDeliverableOptions } from '../../hooks/useDeliverables'
 import Button from '../ui/Button'
 import Input from '../ui/Input'
 import Textarea from '../ui/Textarea'
 import Select from '../ui/Select'
+import GroupedSelect from '../ui/GroupedSelect'
 import MultiSelect from '../ui/MultiSelect'
 import Modal from '../ui/Modal'
 
@@ -31,6 +34,7 @@ const postFormSchema = z.object({
   hook: z.string().optional(),
   caption: z.string().optional(),
   notes: z.string().optional(),
+  deliverable_id: z.string().uuid().nullable().optional(),
 })
 
 const emptyDefaults = {
@@ -44,6 +48,7 @@ const emptyDefaults = {
   hook: '',
   caption: '',
   notes: '',
+  deliverable_id: null,
 }
 
 function toFormValues(post) {
@@ -59,6 +64,7 @@ function toFormValues(post) {
     hook: post.hook ?? '',
     caption: post.caption ?? '',
     notes: post.notes ?? '',
+    deliverable_id: post.deliverable_id ?? null,
   }
 }
 
@@ -74,13 +80,41 @@ function toDbPayload(data) {
     hook: data.hook?.trim() || null,
     caption: data.caption?.trim() || null,
     notes: data.notes?.trim() || null,
+    deliverable_id: data.deliverable_id || null,
   }
+}
+
+function buildDeliverableGroups(deliverables) {
+  const groupMap = new Map()
+
+  for (const row of deliverables ?? []) {
+    const brandName = row.campaigns?.brands?.name ?? 'Unknown brand'
+    const campaignTitle = row.campaigns?.title ?? 'Unknown campaign'
+    const groupLabel = `${brandName} — ${campaignTitle}`
+
+    if (!groupMap.has(groupLabel)) {
+      groupMap.set(groupLabel, [])
+    }
+    groupMap.get(groupLabel).push({
+      value: row.id,
+      label: formatDeliverableLabel(row),
+      disclosureRequired: row.campaigns?.disclosure_required ?? false,
+    })
+  }
+
+  return Array.from(groupMap.entries()).map(([label, options]) => ({ label, options }))
 }
 
 export default function PostForm({ open, onClose, post, onSuccess }) {
   const isEdit = Boolean(post?.id)
   const createPost = useCreatePost()
   const updatePost = useUpdatePost()
+  const { data: deliverableRows = [] } = useDeliverableOptions()
+
+  const deliverableGroups = useMemo(
+    () => buildDeliverableGroups(deliverableRows),
+    [deliverableRows],
+  )
 
   const {
     register,
@@ -95,7 +129,14 @@ export default function PostForm({ open, onClose, post, onSuccess }) {
 
   const caption = useWatch({ control, name: 'caption' }) ?? ''
   const selectedPlatforms = useWatch({ control, name: 'platforms' }) ?? []
+  const selectedDeliverableId = useWatch({ control, name: 'deliverable_id' })
   const captionLength = caption.length
+
+  const disclosureRequired = useMemo(() => {
+    if (!selectedDeliverableId) return false
+    const match = deliverableRows.find((row) => row.id === selectedDeliverableId)
+    return match?.campaigns?.disclosure_required ?? false
+  }, [selectedDeliverableId, deliverableRows])
 
   useEffect(() => {
     if (open) {
@@ -230,6 +271,24 @@ export default function PostForm({ open, onClose, post, onSuccess }) {
           />
         </div>
 
+        {deliverableGroups.length > 0 && (
+          <Controller
+            name="deliverable_id"
+            control={control}
+            render={({ field }) => (
+              <GroupedSelect
+                id="deliverable_id"
+                label="Linked deliverable"
+                value={field.value}
+                onChange={field.onChange}
+                groups={deliverableGroups}
+                placeholder="None — not part of a campaign"
+                error={errors.deliverable_id?.message}
+              />
+            )}
+          />
+        )}
+
         <Textarea
           id="hook"
           label="Hook"
@@ -248,6 +307,12 @@ export default function PostForm({ open, onClose, post, onSuccess }) {
             error={errors.caption?.message}
             {...register('caption')}
           />
+          {disclosureRequired && (
+            <p className="mt-2 rounded border border-coral/30 bg-coral/10 px-3 py-2 text-xs text-charcoal">
+              This campaign requires disclosure — include <strong>#ad</strong> or{' '}
+              <strong>#sponsored</strong> in your caption.
+            </p>
+          )}
           <div className="mt-2 space-y-1">
             <p className="text-xs text-slate">{captionLength} characters</p>
             {selectedPlatforms.length > 0 && (
