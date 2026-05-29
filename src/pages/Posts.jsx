@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Video, Share2, Globe, Archive, Copy, Pencil, Trash2 } from 'lucide-react'
+import { Video, Share2, Globe, Archive, Copy, Pencil, Trash2, BarChart2 } from 'lucide-react'
 import AppShell from '../components/layout/AppShell'
 import Button from '../components/ui/Button'
 import Badge from '../components/ui/Badge'
 import Modal from '../components/ui/Modal'
 import PostForm from '../components/posts/PostForm'
+import MetricsModal from '../components/metrics/MetricsModal'
 import {
   usePosts,
   useArchivePost,
@@ -40,6 +41,7 @@ export default function Posts() {
   const [formOpen, setFormOpen] = useState(false)
   const [editingPost, setEditingPost] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
+  const [metricsPost, setMetricsPost] = useState(null)
 
   const { data: posts = [], isLoading, error } = usePosts({ includeArchived: showArchived })
   const archivePost = useArchivePost()
@@ -161,6 +163,14 @@ export default function Posts() {
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
+                    onClick={() => setMetricsPost(post)}
+                    className="rounded p-2 text-slate transition hover:bg-charcoal/5 hover:text-charcoal"
+                    aria-label={`Metrics for ${post.title}`}
+                  >
+                    <BarChart2 className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => openEdit(post)}
                     className="rounded p-2 text-slate transition hover:bg-charcoal/5 hover:text-charcoal"
                     aria-label={`Edit ${post.title}`}
@@ -203,6 +213,12 @@ export default function Posts() {
       )}
 
       <PostForm open={formOpen} onClose={closeForm} post={editingPost} />
+
+      <MetricsModal
+        open={Boolean(metricsPost)}
+        onClose={() => setMetricsPost(null)}
+        post={metricsPost}
+      />
 
       <Modal open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} title="Delete post" size="sm">
         <p className="text-sm text-charcoal">
