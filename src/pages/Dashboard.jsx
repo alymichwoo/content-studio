@@ -13,8 +13,10 @@ import {
 } from 'recharts'
 import { Loader2 } from 'lucide-react'
 import { endOfMonth, format, startOfMonth, subMonths } from 'date-fns'
+import TrendAlerts from '../components/dashboard/TrendAlerts'
 import AppShell from '../components/layout/AppShell'
 import { PLATFORMS_BY_VALUE } from '../lib/constants'
+import { useAllDeliverables } from '../hooks/useDeliverables'
 import {
   computeDashboardAnalytics,
   formatEngagementPercent,
@@ -120,12 +122,17 @@ export default function Dashboard() {
 
   const postsQuery = usePosts()
   const metricsQuery = useAllMetrics({ startDate, endDate })
+  const alertMetricsQuery = useAllMetrics()
+  const deliverablesQuery = useAllDeliverables()
 
   const posts = postsQuery.data ?? []
   const metrics = metricsQuery.data ?? []
+  const alertMetrics = alertMetricsQuery.data ?? []
+  const deliverables = deliverablesQuery.data ?? []
 
   const isLoading = postsQuery.isPending || metricsQuery.isPending
   const queryError = postsQuery.error ?? metricsQuery.error
+  const alertsLoading = alertMetricsQuery.isPending || deliverablesQuery.isPending
 
   useEffect(() => {
     if (isLoading || queryError) return
@@ -174,6 +181,16 @@ export default function Dashboard() {
           rangeLabel={rangeLabel}
           onRangeChange={setRangeId}
         />
+
+        {alertsLoading ? (
+          <p className="text-sm text-slate">Checking for updates…</p>
+        ) : (
+          <TrendAlerts
+            posts={posts}
+            metrics={alertMetrics}
+            deliverables={deliverables}
+          />
+        )}
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center gap-3 py-24">

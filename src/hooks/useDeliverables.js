@@ -25,6 +25,34 @@ export function useDeliverables(campaignId) {
   })
 }
 
+/** All deliverables joined to campaign + brand for dashboard alerts and labels. */
+export function useAllDeliverables() {
+  return useQuery({
+    queryKey: [...DELIVERABLES_QUERY_KEY, 'all'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('deliverables')
+        .select(
+          `
+          *,
+          campaigns (
+            id,
+            title,
+            disclosure_required,
+            brands (
+              id,
+              name
+            )
+          )
+        `,
+        )
+        .order('due_date', { ascending: true, nullsFirst: false })
+      if (error) throw error
+      return data
+    },
+  })
+}
+
 /** All deliverables with brand + campaign context for the post form selector. */
 export function useDeliverableOptions() {
   return useQuery({
