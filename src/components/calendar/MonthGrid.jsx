@@ -1,31 +1,10 @@
 import { useMemo, useState } from 'react'
-import {
-  DndContext,
-  DragOverlay,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  closestCenter,
-} from '@dnd-kit/core'
-import {
-  addMonths,
-  eachDayOfInterval,
-  endOfMonth,
-  endOfWeek,
-  format,
-  startOfMonth,
-  startOfWeek,
-  subMonths,
-} from 'date-fns'
+import { addMonths, subMonths } from 'date-fns'
 import CalendarHeader from './CalendarHeader'
-import DayCell from './DayCell'
-import PostCard, { PostCardPreview } from './PostCard'
-
-const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-function getEventsForDay(dayKey, events) {
-  return events.filter((event) => event.start_date <= dayKey && event.end_date >= dayKey)
-}
+import CompactMonthGrid from './CompactMonthGrid'
+import DesktopMonthGrid from './DesktopMonthGrid'
+import DayDetailSheet from './DayDetailSheet'
+import { buildPostsByDate, getEventsForDay, toDayKey } from './calendarUtils'
 
 export default function MonthGrid({
   currentMonth,
@@ -37,30 +16,13 @@ export default function MonthGrid({
   onPostDrop,
   onAddEvent,
 }) {
-  const [activePost, setActivePost] = useState(null)
+  const [selectedDay, setSelectedDay] = useState(null)
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
-  )
+  const postsByDate = useMemo(() => buildPostsByDate(posts), [posts])
 
-  const calendarDays = useMemo(() => {
-    const monthStart = startOfMonth(currentMonth)
-    const monthEnd = endOfMonth(currentMonth)
-    const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 })
-    const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 0 })
-    return eachDayOfInterval({ start: gridStart, end: gridEnd })
-  }, [currentMonth])
-
-  const postsByDate = useMemo(() => {
-    const map = {}
-    for (const post of posts) {
-      if (!post.scheduled_date) continue
-      const key = post.scheduled_date
-      if (!map[key]) map[key] = []
-      map[key].push(post)
-    }
-    return map
-  }, [posts])
+  const selectedDayKey = selectedDay ? toDayKey(selectedDay) : null
+  const selectedDayPosts = selectedDayKey ? postsByDate[selectedDayKey] ?? [] : []
+  const selectedDayEvents = selectedDayKey ? getEventsForDay(selectedDayKey, events) : []
 
   function handlePrev() {
     onMonthChange(subMonths(currentMonth, 1))
@@ -74,24 +36,22 @@ export default function MonthGrid({
     onMonthChange(new Date())
   }
 
-  function handleDragStart(event) {
-    setActivePost(event.active.data.current?.post ?? null)
+  function handleMobileDaySelect(date) {
+    setSelectedDay(date)
   }
 
-  function handleDragEnd(event) {
-    setActivePost(null)
-    const { active, over } = event
-    if (!over) return
-
-    const post = active.data.current?.post
-    const newDate = over.id
-    if (!post || !newDate || post.scheduled_date === newDate) return
-
-    onPostDrop?.(post, newDate)
+  function handleMobilePostClick(post) {
+    setSelectedDay(null)
+    onPostClick?.(post)
   }
 
-  function handleDragCancel() {
-    setActivePost(null)
+  function handleMobileAddPost(date) {
+    setSelectedDay(null)
+    onDayClick?.(date)
+  }
+
+  function closeDaySheet() {
+    setSelectedDay(null)
   }
 
   return (
@@ -104,51 +64,37 @@ export default function MonthGrid({
         onAddEvent={onAddEvent}
       />
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-        onDragCancel={handleDragCancel}
-      >
-        <div className="overflow-hidden rounded-lg border border-slate/20">
-          <div className="grid grid-cols-7 border-b border-slate/20 bg-charcoal/[0.03]">
-            {WEEKDAY_LABELS.map((label) => (
-              <div
-                key={label}
-                className="border-r border-slate/15 px-2 py-2 text-center text-xs font-bold uppercase tracking-wider text-slate last:border-r-0"
-              >
-                {label}
-              </div>
-            ))}
-          </div>
+      {/* Mobile: compact dot grid + day-detail sheet (no drag-and-drop) */}
+      <div className="md:hidden">
+        <CompactMonthGrid
+          currentMonth={currentMonth}
+          posts={posts}
+          events={events}
+          onDaySelect={handleMobileDaySelect}
+        />
+      </div>
 
-          <div className="grid grid-cols-7">
-            {calendarDays.map((day) => {
-              const dayKey = format(day, 'yyyy-MM-dd')
-              return (
-                <DayCell
-                  key={dayKey}
-                  date={day}
-                  currentMonth={currentMonth}
-                  posts={postsByDate[dayKey] ?? []}
-                  events={getEventsForDay(dayKey, events)}
-                  onDayClick={onDayClick}
-                  onPostClick={onPostClick}
-                />
-              )
-            })}
-          </div>
-        </div>
+      {/* Desktop: full grid with chips, banners, and @dnd-kit reschedule */}
+      <div className="hidden md:block">
+        <DesktopMonthGrid
+          currentMonth={currentMonth}
+          posts={posts}
+          events={events}
+          onPostClick={onPostClick}
+          onDayClick={onDayClick}
+          onPostDrop={onPostDrop}
+        />
+      </div>
 
-        <DragOverlay dropAnimation={null}>
-          {activePost ? (
-            <div className="w-48">
-              <PostCardPreview post={activePost} />
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+      <DayDetailSheet
+        open={Boolean(selectedDay)}
+        onClose={closeDaySheet}
+        date={selectedDay}
+        posts={selectedDayPosts}
+        events={selectedDayEvents}
+        onPostClick={handleMobilePostClick}
+        onAddPost={handleMobileAddPost}
+      />
     </div>
   )
 }
