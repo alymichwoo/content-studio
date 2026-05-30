@@ -56,6 +56,14 @@ export function AuthProvider({ children }) {
         const { error } = await supabase.auth.signOut()
         return { error }
       },
+      async updateEmail(email) {
+        const { error } = await supabase.auth.updateUser({ email })
+        return { error }
+      },
+      async updatePassword(password) {
+        const { error } = await supabase.auth.updateUser({ password })
+        return { error }
+      },
     }
   }, [session, loading])
 

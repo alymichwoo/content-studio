@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Menu, User } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import Button from '../ui/Button'
@@ -21,8 +22,12 @@ export default function TopBar({ title, mobileNavOpen = false, onMenuClick }) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [userMenuOpen])
 
-  function handleSignOut() {
+  function closeUserMenu() {
     setUserMenuOpen(false)
+  }
+
+  function handleSignOut() {
+    closeUserMenu()
     signOut()
   }
 
@@ -46,6 +51,12 @@ export default function TopBar({ title, mobileNavOpen = false, onMenuClick }) {
 
       <div className="hidden items-center gap-4 md:flex">
         {user?.email && <span className="text-sm text-slate">{user.email}</span>}
+        <Link
+          to="/settings"
+          className="inline-flex min-h-11 items-center justify-center rounded border border-slate/30 bg-transparent px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-charcoal transition hover:border-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-charcoal focus-visible:ring-offset-2 md:min-h-0"
+        >
+          Settings
+        </Link>
         <Button variant="ghost" size="sm" onClick={() => signOut()}>
           Sign out
         </Button>
@@ -67,6 +78,13 @@ export default function TopBar({ title, mobileNavOpen = false, onMenuClick }) {
             {user?.email && (
               <p className="border-b border-slate/20 px-4 py-3 text-sm text-slate">{user.email}</p>
             )}
+            <Link
+              to="/settings"
+              className="flex min-h-11 w-full items-center px-4 text-left text-sm font-bold uppercase tracking-wider text-charcoal transition hover:bg-charcoal/5"
+              onClick={closeUserMenu}
+            >
+              Settings
+            </Link>
             <button
               type="button"
               className="flex min-h-11 w-full items-center px-4 text-left text-sm font-bold uppercase tracking-wider text-charcoal transition hover:bg-charcoal/5"
