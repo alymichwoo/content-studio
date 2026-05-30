@@ -9,9 +9,10 @@ function invalidateEvents(queryClient) {
 }
 
 /** List current user's schedule items, optionally overlapping a date range. */
-export function useEvents({ startDate, endDate } = {}) {
+export function useEvents({ startDate, endDate, enabled = true } = {}) {
   return useQuery({
     queryKey: [...EVENTS_QUERY_KEY, { startDate, endDate }],
+    enabled,
     queryFn: async () => {
       let query = supabase.from('schedule_items').select('*').order('start_date', { ascending: true })
 

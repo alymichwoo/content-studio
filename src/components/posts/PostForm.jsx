@@ -2,17 +2,22 @@ import { useEffect, useMemo } from 'react'
 import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { endOfWeek, format, parseISO, startOfWeek } from 'date-fns'
+import { Loader2, Sparkles } from 'lucide-react'
 import {
   CAPTION_LIMITS,
   PILLARS,
   PLATFORMS,
   PLATFORMS_BY_VALUE,
   POST_TYPES,
+  SCHEDULE_TYPES_BY_VALUE,
   STATUSES,
 } from '../../lib/constants'
 import { formatDeliverableLabel } from '../../lib/deliverableUtils'
+import { useSuggest } from '../../ai/useSuggest'
 import { useCreatePost, useUpdatePost } from '../../hooks/usePosts'
 import { useDeliverableOptions } from '../../hooks/useDeliverables'
+import { useEvents } from '../../hooks/useEvents'
 import Button from '../ui/Button'
 import Input from '../ui/Input'
 import Textarea from '../ui/Textarea'
@@ -105,6 +110,35 @@ function buildDeliverableGroups(deliverables) {
   return Array.from(groupMap.entries()).map(([label, options]) => ({ label, options }))
 }
 
+function buildScheduleContext(items) {
+  if (!items?.length) return undefined
+
+  return items
+    .map((item) => {
+      const typeLabel = SCHEDULE_TYPES_BY_VALUE[item.type]?.label ?? item.type
+      const dates =
+        item.start_date === item.end_date
+          ? item.start_date
+          : `${item.start_date} to ${item.end_date}`
+      let summary = `${typeLabel}: ${item.title} (${dates}`
+      if (item.location) summary += `, ${item.location}`
+      summary += ')'
+      return summary
+    })
+    .join('; ')
+}
+
+function appendHashtagsToCaption(caption, hashtags) {
+  if (!hashtags?.length) return caption
+
+  const tagLine = hashtags
+    .map((tag) => (tag.startsWith('#') ? tag : `#${tag}`))
+    .join(' ')
+
+  const trimmed = caption?.trim() ?? ''
+  return trimmed ? `${trimmed}\n\n${tagLine}` : tagLine
+}
+
 export default function PostForm({ open, onClose, post, onSuccess }) {
   const isEdit = Boolean(post?.id)
   const createPost = useCreatePost()
@@ -121,6 +155,7 @@ export default function PostForm({ open, onClose, post, onSuccess }) {
     handleSubmit,
     control,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(postFormSchema),
@@ -128,9 +163,29 @@ export default function PostForm({ open, onClose, post, onSuccess }) {
   })
 
   const caption = useWatch({ control, name: 'caption' }) ?? ''
+  const selectedPillar = useWatch({ control, name: 'pillar' })
   const selectedPlatforms = useWatch({ control, name: 'platforms' }) ?? []
+  const scheduledDate = useWatch({ control, name: 'scheduled_date' })
   const selectedDeliverableId = useWatch({ control, name: 'deliverable_id' })
   const captionLength = caption.length
+
+  const { suggest, isLoading: isSuggestLoading, error: suggestError, reset: resetSuggest } =
+    useSuggest()
+
+  const weekRange = useMemo(() => {
+    const base = scheduledDate ? parseISO(scheduledDate) : new Date()
+    return {
+      startDate: format(startOfWeek(base, { weekStartsOn: 0 }), 'yyyy-MM-dd'),
+      endDate: format(endOfWeek(base, { weekStartsOn: 0 }), 'yyyy-MM-dd'),
+    }
+  }, [scheduledDate])
+
+  const { data: weekEvents = [] } = useEvents({
+    ...weekRange,
+    enabled: open,
+  })
+
+  const canSuggest = Boolean(selectedPillar) && selectedPlatforms.length > 0
 
   const disclosureRequired = useMemo(() => {
     if (!selectedDeliverableId) return false
@@ -141,8 +196,32 @@ export default function PostForm({ open, onClose, post, onSuccess }) {
   useEffect(() => {
     if (open) {
       reset(toFormValues(post))
+      resetSuggest()
     }
-  }, [open, post, reset])
+  }, [open, post, reset, resetSuggest])
+
+  async function handleSuggest() {
+    if (!canSuggest) return
+
+    resetSuggest()
+
+    try {
+      const result = await suggest({
+        pillar: selectedPillar,
+        platform: selectedPlatforms[0],
+        context: buildScheduleContext(weekEvents),
+      })
+
+      setValue('hook', result.hook ?? '', { shouldDirty: true })
+      setValue(
+        'caption',
+        appendHashtagsToCaption(result.caption, result.hashtags),
+        { shouldDirty: true },
+      )
+    } catch {
+      // Error surfaces via suggestError
+    }
+  }
 
   async function onSubmit(data) {
     const payload = toDbPayload(data)
@@ -289,14 +368,48 @@ export default function PostForm({ open, onClose, post, onSuccess }) {
           />
         )}
 
-        <Textarea
-          id="hook"
-          label="Hook"
-          rows={2}
-          placeholder="Opening line or scroll-stopper"
-          error={errors.hook?.message}
-          {...register('hook')}
-        />
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate">Content draft</p>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={!canSuggest || isSuggestLoading || isSubmitting}
+              onClick={handleSuggest}
+            >
+              {isSuggestLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                  Suggesting…
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
+                  Suggest with AI
+                </>
+              )}
+            </Button>
+          </div>
+
+          {suggestError && (
+            <div
+              className="rounded border border-coral/40 bg-coral/10 px-3 py-2 text-sm text-coral"
+              role="alert"
+            >
+              {suggestError.message}
+            </div>
+          )}
+
+          <Textarea
+            id="hook"
+            label="Hook"
+            rows={2}
+            placeholder="Opening line or scroll-stopper"
+            error={errors.hook?.message}
+            {...register('hook')}
+          />
+        </div>
 
         <div>
           <Textarea
