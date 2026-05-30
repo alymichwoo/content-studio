@@ -16,6 +16,7 @@ import Textarea from '../components/ui/Textarea'
 import MultiSelect from '../components/ui/MultiSelect'
 import Select from '../components/ui/Select'
 import Modal from '../components/ui/Modal'
+import { iconButtonClass, iconButtonDangerClass, modalFooterClass } from '../components/ui/iconButtonStyles'
 import PostForm from '../components/posts/PostForm'
 import {
   useIdeas,
@@ -104,7 +105,7 @@ function IdeaEditForm({ idea, onClose, onSave, isSaving }) {
         onChange={setPlatforms}
         options={PLATFORMS}
       />
-      <div className="flex justify-end gap-3 border-t border-slate/20 pt-4">
+      <div className={modalFooterClass}>
         <Button type="button" variant="ghost" onClick={onClose}>
           Cancel
         </Button>
@@ -336,7 +337,7 @@ export default function Ideas() {
                       type="button"
                       onClick={() => advanceStatus(idea)}
                       disabled={updateIdea.isPending}
-                      className="flex items-center gap-1 rounded px-2 py-1.5 text-xs font-bold uppercase tracking-wider text-slate transition hover:bg-charcoal/5 hover:text-charcoal disabled:opacity-50"
+                      className="flex min-h-11 items-center gap-1 rounded px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate transition hover:bg-charcoal/5 hover:text-charcoal disabled:opacity-50 md:min-h-0 md:px-2 md:py-1.5"
                       title={`Move to ${IDEA_STATUSES_BY_VALUE[STATUS_FLOW[STATUS_FLOW.indexOf(idea.status) + 1]]?.label}`}
                     >
                       <ChevronRight className="h-4 w-4" />
@@ -348,7 +349,7 @@ export default function Ideas() {
                   <button
                     type="button"
                     onClick={() => openPromote(idea)}
-                    className="flex items-center gap-1 rounded px-2 py-1.5 text-xs font-bold uppercase tracking-wider text-coral transition hover:bg-coral/10"
+                    className="flex min-h-11 items-center gap-1 rounded px-3 py-2 text-xs font-bold uppercase tracking-wider text-coral transition hover:bg-coral/10 md:min-h-0 md:px-2 md:py-1.5"
                     title="Promote to calendar"
                   >
                     <ArrowUpRight className="h-4 w-4" />
@@ -357,7 +358,7 @@ export default function Ideas() {
                   <button
                     type="button"
                     onClick={() => setEditingIdea(idea)}
-                    className="rounded p-2 text-slate transition hover:bg-charcoal/5 hover:text-charcoal"
+                    className={iconButtonClass}
                     aria-label={`Edit ${idea.title}`}
                   >
                     <Pencil className="h-4 w-4" />
@@ -365,7 +366,7 @@ export default function Ideas() {
                   <button
                     type="button"
                     onClick={() => setDeleteTarget(idea)}
-                    className="rounded p-2 text-slate transition hover:bg-coral/10 hover:text-coral"
+                    className={iconButtonDangerClass}
                     aria-label={`Delete ${idea.title}`}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -397,19 +398,21 @@ export default function Ideas() {
         onClose={() => setDeleteTarget(null)}
         title="Delete idea"
         size="sm"
+        footer={
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDelete} disabled={deleteIdea.isPending}>
+              {deleteIdea.isPending ? 'Deleting…' : 'Delete'}
+            </Button>
+          </div>
+        }
       >
         <p className="text-sm text-charcoal">
           Delete <span className="font-semibold">{deleteTarget?.title || 'this idea'}</span>? This
           cannot be undone.
         </p>
-        <div className="mt-6 flex justify-end gap-3">
-          <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={handleDelete} disabled={deleteIdea.isPending}>
-            {deleteIdea.isPending ? 'Deleting…' : 'Delete'}
-          </Button>
-        </div>
       </Modal>
     </AppShell>
   )

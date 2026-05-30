@@ -9,6 +9,7 @@ import Input from '../ui/Input'
 import Textarea from '../ui/Textarea'
 import Select from '../ui/Select'
 import Modal from '../ui/Modal'
+import { modalFooterClass } from '../ui/iconButtonStyles'
 
 const brandFormSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -136,7 +137,7 @@ export default function BrandForm({ open, onClose, brand }) {
           {...register('website')}
         />
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <Input
             id="brand-contact_name"
             label="Contact name"
@@ -160,7 +161,7 @@ export default function BrandForm({ open, onClose, brand }) {
           {...register('notes')}
         />
 
-        <div className="flex justify-end gap-3 border-t border-slate/20 pt-4">
+        <div className={modalFooterClass}>
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>

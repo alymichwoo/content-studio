@@ -38,7 +38,7 @@ export default function MultiSelect({
               type="button"
               aria-pressed={selected}
               onClick={() => toggle(opt.value)}
-              className={`rounded border px-3 py-1.5 text-xs font-bold uppercase tracking-wider transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 ${
+              className={`min-h-11 rounded border px-3 py-2.5 text-xs font-bold uppercase tracking-wider transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral focus-visible:ring-offset-2 md:min-h-0 md:py-1.5 ${
                 selected
                   ? 'border-charcoal bg-charcoal text-cream'
                   : 'border-slate/30 bg-cream text-charcoal hover:border-charcoal'

@@ -13,6 +13,7 @@ import {
   useDuplicatePost,
 } from '../hooks/usePosts'
 import { PILLARS_BY_VALUE, PLATFORMS_BY_VALUE, STATUSES_BY_VALUE } from '../lib/constants'
+import { iconButtonClass, iconButtonDangerClass } from '../components/ui/iconButtonStyles'
 
 const STATUS_COLORS = {
   idea: '#8E8E93',
@@ -34,6 +35,82 @@ function PlatformIcon({ platform }) {
     default:
       return null
   }
+}
+
+function PostActions({ post, onMetrics, onEdit, onDuplicate, onArchive, onDelete, duplicatePending, archivePending }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      <button
+        type="button"
+        onClick={() => onMetrics(post)}
+        className={iconButtonClass}
+        aria-label={`Metrics for ${post.title}`}
+      >
+        <BarChart2 className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => onEdit(post)}
+        className={iconButtonClass}
+        aria-label={`Edit ${post.title}`}
+      >
+        <Pencil className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => onDuplicate(post)}
+        disabled={duplicatePending}
+        className={`${iconButtonClass} disabled:opacity-50`}
+        aria-label={`Duplicate ${post.title}`}
+      >
+        <Copy className="h-4 w-4" />
+      </button>
+      {!post.archived && (
+        <button
+          type="button"
+          onClick={() => onArchive(post.id)}
+          disabled={archivePending}
+          className={`${iconButtonClass} disabled:opacity-50`}
+          aria-label={`Archive ${post.title}`}
+        >
+          <Archive className="h-4 w-4" />
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={() => onDelete(post)}
+        className={iconButtonDangerClass}
+        aria-label={`Delete ${post.title}`}
+      >
+        <Trash2 className="h-4 w-4" />
+      </button>
+    </div>
+  )
+}
+
+function PostPlatformIcons({ platforms }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5" aria-label="Platforms">
+      {(platforms ?? []).map((platform) => (
+        <span
+          key={platform}
+          title={PLATFORMS_BY_VALUE[platform]?.label}
+          className="flex h-9 w-9 items-center justify-center rounded border border-slate/20 bg-cream md:h-7 md:w-7"
+        >
+          <PlatformIcon platform={platform} />
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function CardField({ label, children }) {
+  return (
+    <div>
+      <p className="text-xs font-bold uppercase tracking-wider text-slate">{label}</p>
+      <div className="mt-1">{children}</div>
+    </div>
+  )
 }
 
 export default function Posts() {
@@ -125,86 +202,91 @@ export default function Posts() {
             return (
               <li
                 key={post.id}
-                className={`flex flex-wrap items-center gap-3 px-4 py-3 sm:gap-4 ${post.archived ? 'opacity-60' : ''}`}
+                className={post.archived ? 'opacity-60' : ''}
               >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-charcoal">{post.title || 'Untitled'}</p>
+                {/* Mobile: stacked label/value card */}
+                <div className="space-y-3 px-4 py-4 md:hidden">
+                  <CardField label="Title">
+                    <p className="font-semibold text-charcoal">{post.title || 'Untitled'}</p>
+                  </CardField>
                   {post.series && (
-                    <p className="truncate text-xs text-slate">{post.series}</p>
+                    <CardField label="Series">
+                      <p className="text-sm text-charcoal">{post.series}</p>
+                    </CardField>
                   )}
+                  <div className="grid grid-cols-2 gap-3">
+                    <CardField label="Pillar">
+                      {pillar ? (
+                        <Badge color={pillar.color}>{pillar.label}</Badge>
+                      ) : (
+                        <span className="text-sm text-slate">—</span>
+                      )}
+                    </CardField>
+                    <CardField label="Status">
+                      <div className="flex flex-wrap gap-1.5">
+                        {status && (
+                          <Badge color={STATUS_COLORS[post.status] ?? '#8E8E93'}>
+                            {status.label}
+                          </Badge>
+                        )}
+                        {post.archived && <Badge color="#8E8E93">Archived</Badge>}
+                      </div>
+                    </CardField>
+                  </div>
+                  <CardField label="Platforms">
+                    {(post.platforms ?? []).length > 0 ? (
+                      <PostPlatformIcons platforms={post.platforms} />
+                    ) : (
+                      <span className="text-sm text-slate">—</span>
+                    )}
+                  </CardField>
+                  <div className="border-t border-slate/20 pt-3">
+                    <PostActions
+                      post={post}
+                      onMetrics={setMetricsPost}
+                      onEdit={openEdit}
+                      onDuplicate={(p) => duplicatePost.mutate(p)}
+                      onArchive={(id) => archivePost.mutate(id)}
+                      onDelete={setDeleteTarget}
+                      duplicatePending={duplicatePost.isPending}
+                      archivePending={archivePost.isPending}
+                    />
+                  </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  {pillar && (
-                    <Badge color={pillar.color}>{pillar.label}</Badge>
-                  )}
-                  {status && (
-                    <Badge color={STATUS_COLORS[post.status] ?? '#8E8E93'}>
-                      {status.label}
-                    </Badge>
-                  )}
-                  {post.archived && (
-                    <Badge color="#8E8E93">Archived</Badge>
-                  )}
-                </div>
+                {/* Desktop: horizontal row */}
+                <div
+                  className={`hidden md:flex md:flex-wrap md:items-center md:gap-4 md:px-4 md:py-3 ${post.archived ? '' : ''}`}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-charcoal">{post.title || 'Untitled'}</p>
+                    {post.series && (
+                      <p className="truncate text-xs text-slate">{post.series}</p>
+                    )}
+                  </div>
 
-                <div className="flex items-center gap-1.5" aria-label="Platforms">
-                  {(post.platforms ?? []).map((platform) => (
-                    <span
-                      key={platform}
-                      title={PLATFORMS_BY_VALUE[platform]?.label}
-                      className="flex h-7 w-7 items-center justify-center rounded border border-slate/20 bg-cream"
-                    >
-                      <PlatformIcon platform={platform} />
-                    </span>
-                  ))}
-                </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {pillar && <Badge color={pillar.color}>{pillar.label}</Badge>}
+                    {status && (
+                      <Badge color={STATUS_COLORS[post.status] ?? '#8E8E93'}>
+                        {status.label}
+                      </Badge>
+                    )}
+                    {post.archived && <Badge color="#8E8E93">Archived</Badge>}
+                  </div>
 
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setMetricsPost(post)}
-                    className="rounded p-2 text-slate transition hover:bg-charcoal/5 hover:text-charcoal"
-                    aria-label={`Metrics for ${post.title}`}
-                  >
-                    <BarChart2 className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => openEdit(post)}
-                    className="rounded p-2 text-slate transition hover:bg-charcoal/5 hover:text-charcoal"
-                    aria-label={`Edit ${post.title}`}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => duplicatePost.mutate(post)}
-                    disabled={duplicatePost.isPending}
-                    className="rounded p-2 text-slate transition hover:bg-charcoal/5 hover:text-charcoal disabled:opacity-50"
-                    aria-label={`Duplicate ${post.title}`}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </button>
-                  {!post.archived && (
-                    <button
-                      type="button"
-                      onClick={() => archivePost.mutate(post.id)}
-                      disabled={archivePost.isPending}
-                      className="rounded p-2 text-slate transition hover:bg-charcoal/5 hover:text-charcoal disabled:opacity-50"
-                      aria-label={`Archive ${post.title}`}
-                    >
-                      <Archive className="h-4 w-4" />
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setDeleteTarget(post)}
-                    className="rounded p-2 text-slate transition hover:bg-coral/10 hover:text-coral"
-                    aria-label={`Delete ${post.title}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <PostPlatformIcons platforms={post.platforms} />
+
+                  <PostActions
+                    post={post}
+                    onMetrics={setMetricsPost}
+                    onEdit={openEdit}
+                    onDuplicate={(p) => duplicatePost.mutate(p)}
+                    onArchive={(id) => archivePost.mutate(id)}
+                    onDelete={setDeleteTarget}
+                    duplicatePending={duplicatePost.isPending}
+                    archivePending={archivePost.isPending}
+                  />
                 </div>
               </li>
             )
@@ -220,23 +302,26 @@ export default function Posts() {
         post={metricsPost}
       />
 
-      <Modal open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} title="Delete post" size="sm">
+      <Modal
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete post"
+        size="sm"
+        footer={
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDelete} disabled={deletePost.isPending}>
+              {deletePost.isPending ? 'Deleting…' : 'Delete'}
+            </Button>
+          </div>
+        }
+      >
         <p className="text-sm text-charcoal">
           Delete <span className="font-semibold">{deleteTarget?.title || 'this post'}</span>? This
           cannot be undone.
         </p>
-        <div className="mt-6 flex justify-end gap-3">
-          <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            onClick={handleDelete}
-            disabled={deletePost.isPending}
-          >
-            {deletePost.isPending ? 'Deleting…' : 'Delete'}
-          </Button>
-        </div>
       </Modal>
     </AppShell>
   )

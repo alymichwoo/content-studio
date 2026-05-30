@@ -26,6 +26,7 @@ import {
   CAMPAIGN_STATUSES_BY_VALUE,
   PAYMENT_STATUSES_BY_VALUE,
 } from '../lib/constants'
+import { iconButtonClass, iconButtonDangerClass } from '../components/ui/iconButtonStyles'
 
 const BRAND_STATUS_COLORS = {
   prospect: '#8E8E93',
@@ -39,6 +40,15 @@ const CAMPAIGN_STATUS_COLORS = {
   active: '#1D9E75',
   delivered: '#378ADD',
   wrapped: '#7F77DD',
+}
+
+function CardField({ label, children }) {
+  return (
+    <div>
+      <p className="text-xs font-bold uppercase tracking-wider text-slate">{label}</p>
+      <div className="mt-1">{children}</div>
+    </div>
+  )
 }
 
 export default function Partnerships() {
@@ -205,8 +215,53 @@ export default function Partnerships() {
 
                 return (
                   <li key={brand.id}>
+                    {/* Mobile: stacked card */}
                     <div
-                      className={`flex items-center gap-2 px-3 py-3 ${isSelected ? 'bg-charcoal/5' : ''}`}
+                      className={`space-y-3 px-4 py-4 md:hidden ${isSelected ? 'bg-charcoal/5' : ''}`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() => selectBrand(brand.id)}
+                          className="min-w-0 flex-1 text-left"
+                        >
+                          <CardField label="Brand">
+                            <p className="font-semibold text-charcoal">{brand.name}</p>
+                          </CardField>
+                        </button>
+                        <div className="flex shrink-0 items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => openEditBrand(brand)}
+                            className={iconButtonClass}
+                            aria-label={`Edit ${brand.name}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteBrandTarget(brand)}
+                            className={iconButtonDangerClass}
+                            aria-label={`Delete ${brand.name}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <CardField label="Status">
+                        {statusMeta ? (
+                          <Badge color={BRAND_STATUS_COLORS[brand.status] ?? '#8E8E93'}>
+                            {statusMeta.label}
+                          </Badge>
+                        ) : (
+                          <span className="text-sm text-slate">—</span>
+                        )}
+                      </CardField>
+                    </div>
+
+                    {/* Desktop: horizontal row */}
+                    <div
+                      className={`hidden items-center gap-2 px-3 py-3 md:flex ${isSelected ? 'bg-charcoal/5' : ''}`}
                     >
                       <button
                         type="button"
@@ -227,7 +282,7 @@ export default function Partnerships() {
                       <button
                         type="button"
                         onClick={() => openEditBrand(brand)}
-                        className="rounded p-2 text-slate transition hover:bg-charcoal/5 hover:text-charcoal"
+                        className={iconButtonClass}
                         aria-label={`Edit ${brand.name}`}
                       >
                         <Pencil className="h-4 w-4" />
@@ -235,7 +290,7 @@ export default function Partnerships() {
                       <button
                         type="button"
                         onClick={() => setDeleteBrandTarget(brand)}
-                        className="rounded p-2 text-slate transition hover:bg-coral/10 hover:text-coral"
+                        className={iconButtonDangerClass}
                         aria-label={`Delete ${brand.name}`}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -285,9 +340,67 @@ export default function Partnerships() {
 
                   return (
                     <li key={campaign.id}>
-                      <div
-                        className={`px-3 py-3 ${isSelected ? 'bg-charcoal/5' : ''}`}
-                      >
+                      {/* Mobile: stacked card */}
+                      <div className={`space-y-3 px-4 py-4 md:hidden ${isSelected ? 'bg-charcoal/5' : ''}`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => selectCampaign(campaign.id)}
+                            className="min-w-0 flex-1 text-left"
+                          >
+                            <CardField label="Campaign">
+                              <p className="font-semibold text-charcoal">{campaign.title}</p>
+                            </CardField>
+                          </button>
+                          <div className="flex shrink-0 items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => openEditCampaign(campaign)}
+                              className={iconButtonClass}
+                              aria-label={`Edit ${campaign.title}`}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeleteCampaignTarget(campaign)}
+                              className={iconButtonDangerClass}
+                              aria-label={`Delete ${campaign.title}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+                        <CardField label="Status">
+                          <div className="flex flex-wrap gap-1.5">
+                            {statusMeta && (
+                              <Badge color={CAMPAIGN_STATUS_COLORS[campaign.status] ?? '#8E8E93'}>
+                                {statusMeta.label}
+                              </Badge>
+                            )}
+                            {paymentMeta && (
+                              <Badge
+                                color={campaign.payment_status === 'paid' ? '#1D9E75' : '#EF9F27'}
+                              >
+                                {paymentMeta.label}
+                              </Badge>
+                            )}
+                            {campaign.disclosure_required && (
+                              <Badge color="#FF5733">Disclosure</Badge>
+                            )}
+                          </div>
+                        </CardField>
+                        {(campaign.start_date || campaign.end_date) && (
+                          <CardField label="Dates">
+                            <p className="text-sm text-charcoal">
+                              {campaign.start_date ?? '—'} → {campaign.end_date ?? '—'}
+                            </p>
+                          </CardField>
+                        )}
+                      </div>
+
+                      {/* Desktop: horizontal row */}
+                      <div className={`hidden px-3 py-3 md:block ${isSelected ? 'bg-charcoal/5' : ''}`}>
                         <div className="flex items-start gap-2">
                           <button
                             type="button"
@@ -325,7 +438,7 @@ export default function Partnerships() {
                           <button
                             type="button"
                             onClick={() => openEditCampaign(campaign)}
-                            className="rounded p-2 text-slate transition hover:bg-charcoal/5 hover:text-charcoal"
+                            className={iconButtonClass}
                             aria-label={`Edit ${campaign.title}`}
                           >
                             <Pencil className="h-4 w-4" />
@@ -333,7 +446,7 @@ export default function Partnerships() {
                           <button
                             type="button"
                             onClick={() => setDeleteCampaignTarget(campaign)}
-                            className="rounded p-2 text-slate transition hover:bg-coral/10 hover:text-coral"
+                            className={iconButtonDangerClass}
                             aria-label={`Delete ${campaign.title}`}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -415,19 +528,21 @@ export default function Partnerships() {
         onClose={() => setDeleteBrandTarget(null)}
         title="Delete brand"
         size="sm"
+        footer={
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <Button variant="ghost" onClick={() => setDeleteBrandTarget(null)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDeleteBrand} disabled={deleteBrand.isPending}>
+              {deleteBrand.isPending ? 'Deleting…' : 'Delete'}
+            </Button>
+          </div>
+        }
       >
         <p className="text-sm text-charcoal">
           Delete <span className="font-semibold">{deleteBrandTarget?.name}</span>? All campaigns
           and deliverables under this brand will also be removed.
         </p>
-        <div className="mt-6 flex justify-end gap-3">
-          <Button variant="ghost" onClick={() => setDeleteBrandTarget(null)}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={handleDeleteBrand} disabled={deleteBrand.isPending}>
-            {deleteBrand.isPending ? 'Deleting…' : 'Delete'}
-          </Button>
-        </div>
       </Modal>
 
       <Modal
@@ -435,23 +550,25 @@ export default function Partnerships() {
         onClose={() => setDeleteCampaignTarget(null)}
         title="Delete campaign"
         size="sm"
+        footer={
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <Button variant="ghost" onClick={() => setDeleteCampaignTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDeleteCampaign}
+              disabled={deleteCampaign.isPending}
+            >
+              {deleteCampaign.isPending ? 'Deleting…' : 'Delete'}
+            </Button>
+          </div>
+        }
       >
         <p className="text-sm text-charcoal">
           Delete <span className="font-semibold">{deleteCampaignTarget?.title}</span>? All
           deliverables under this campaign will also be removed.
         </p>
-        <div className="mt-6 flex justify-end gap-3">
-          <Button variant="ghost" onClick={() => setDeleteCampaignTarget(null)}>
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            onClick={handleDeleteCampaign}
-            disabled={deleteCampaign.isPending}
-          >
-            {deleteCampaign.isPending ? 'Deleting…' : 'Delete'}
-          </Button>
-        </div>
       </Modal>
 
       <Modal
@@ -459,22 +576,24 @@ export default function Partnerships() {
         onClose={() => setDeleteDeliverableTarget(null)}
         title="Delete deliverable"
         size="sm"
+        footer={
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <Button variant="ghost" onClick={() => setDeleteDeliverableTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDeleteDeliverable}
+              disabled={deleteDeliverable.isPending}
+            >
+              {deleteDeliverable.isPending ? 'Deleting…' : 'Delete'}
+            </Button>
+          </div>
+        }
       >
         <p className="text-sm text-charcoal">
           Delete this deliverable? Linked posts will be unlinked, not deleted.
         </p>
-        <div className="mt-6 flex justify-end gap-3">
-          <Button variant="ghost" onClick={() => setDeleteDeliverableTarget(null)}>
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            onClick={handleDeleteDeliverable}
-            disabled={deleteDeliverable.isPending}
-          >
-            {deleteDeliverable.isPending ? 'Deleting…' : 'Delete'}
-          </Button>
-        </div>
       </Modal>
     </AppShell>
   )

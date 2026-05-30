@@ -217,8 +217,8 @@ function ReportSheet({ monthLabel, handle, analytics, reportRef }) {
         <h2 className="text-xs font-bold uppercase tracking-[0.15em] text-charcoal">
           Platform breakdown
         </h2>
-        <div className="mt-4 overflow-hidden rounded border border-slate/20 bg-white">
-          <table className="w-full text-left text-sm">
+        <div className="mt-4 overflow-x-auto rounded border border-slate/20 bg-white">
+          <table className="w-full min-w-[32rem] text-left text-sm">
             <thead>
               <tr className="border-b border-slate/20 bg-charcoal/5">
                 <th className="px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate">

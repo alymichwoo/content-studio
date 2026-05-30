@@ -9,6 +9,7 @@ import Input from '../ui/Input'
 import Textarea from '../ui/Textarea'
 import Select from '../ui/Select'
 import Modal from '../ui/Modal'
+import { modalFooterClass } from '../ui/iconButtonStyles'
 
 const eventFormSchema = z
   .object({
@@ -133,7 +134,7 @@ export default function EventForm({ open, onClose, event }) {
           )}
         />
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <Input
             id="event-start_date"
             label="Start date"
@@ -168,7 +169,7 @@ export default function EventForm({ open, onClose, event }) {
           {...register('notes')}
         />
 
-        <div className="flex justify-end gap-3 border-t border-slate/20 pt-4">
+        <div className={modalFooterClass}>
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>

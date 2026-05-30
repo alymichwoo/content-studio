@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { format } from 'date-fns'
 import Button from '../ui/Button'
+import { iconButtonClass } from '../ui/iconButtonStyles'
 
 export default function CalendarHeader({ currentMonth, onPrev, onToday, onNext, onAddEvent }) {
   return (
@@ -14,7 +15,7 @@ export default function CalendarHeader({ currentMonth, onPrev, onToday, onNext, 
           <button
             type="button"
             onClick={onPrev}
-            className="rounded p-2 text-slate transition hover:bg-charcoal/5 hover:text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral"
+            className={`${iconButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral`}
             aria-label="Previous month"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -25,7 +26,7 @@ export default function CalendarHeader({ currentMonth, onPrev, onToday, onNext, 
           <button
             type="button"
             onClick={onNext}
-            className="rounded p-2 text-slate transition hover:bg-charcoal/5 hover:text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral"
+            className={`${iconButtonClass} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral`}
             aria-label="Next month"
           >
             <ChevronRight className="h-5 w-5" />

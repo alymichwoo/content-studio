@@ -9,6 +9,7 @@ import Input from '../ui/Input'
 import Textarea from '../ui/Textarea'
 import Select from '../ui/Select'
 import Modal from '../ui/Modal'
+import { modalFooterClass } from '../ui/iconButtonStyles'
 
 const campaignFormSchema = z
   .object({
@@ -145,7 +146,7 @@ export default function CampaignForm({ open, onClose, campaign, brandId }) {
           )}
         />
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <Input
             id="campaign-start_date"
             label="Start date"
@@ -188,7 +189,7 @@ export default function CampaignForm({ open, onClose, campaign, brandId }) {
                   key={status}
                   type="button"
                   onClick={() => setValue('payment_status', status)}
-                  className={`px-4 py-2 text-xs font-bold uppercase tracking-wider transition first:rounded-l last:rounded-r ${
+                  className={`min-h-11 px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition first:rounded-l last:rounded-r md:min-h-0 md:py-2 ${
                     paymentStatus === status
                       ? 'bg-charcoal text-cream'
                       : 'bg-cream text-charcoal hover:bg-charcoal/5'
@@ -210,7 +211,7 @@ export default function CampaignForm({ open, onClose, campaign, brandId }) {
           </label>
         </div>
 
-        <div className="flex justify-end gap-3 border-t border-slate/20 pt-4">
+        <div className={modalFooterClass}>
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>

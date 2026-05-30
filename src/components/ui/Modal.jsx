@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { X } from 'lucide-react'
 
-export default function Modal({ open, onClose, title, children, size = 'lg' }) {
+export default function Modal({ open, onClose, title, children, footer, size = 'lg' }) {
   useEffect(() => {
     if (!open) return
     function onKeyDown(event) {
@@ -17,10 +17,10 @@ export default function Modal({ open, onClose, title, children, size = 'lg' }) {
 
   if (!open) return null
 
-  const sizeClass = size === 'sm' ? 'max-w-md' : size === 'md' ? 'max-w-lg' : 'max-w-2xl'
+  const sizeClass = size === 'sm' ? 'md:max-w-md' : size === 'md' ? 'md:max-w-lg' : 'md:max-w-2xl'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center">
+    <div className="fixed inset-0 z-50 flex items-end justify-center p-3 sm:items-center sm:p-4">
       <button
         type="button"
         className="fixed inset-0 bg-charcoal/50"
@@ -31,25 +31,34 @@ export default function Modal({ open, onClose, title, children, size = 'lg' }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className={`relative z-10 w-full ${sizeClass} rounded-lg border border-slate/20 bg-cream shadow-xl`}
+        className={`relative z-10 flex max-h-[calc(100dvh-1.5rem)] w-full flex-col overflow-hidden rounded-lg border border-slate/20 bg-cream shadow-xl sm:max-h-[calc(100dvh-2rem)] ${sizeClass}`}
       >
-        <div className="flex items-start justify-between border-b border-slate/20 px-6 py-4">
+        <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate/20 bg-cream px-4 py-3 sm:px-6 sm:py-4">
           <h2
             id="modal-title"
-            className="text-lg font-black uppercase tracking-tighter text-charcoal"
+            className="min-w-0 flex-1 text-lg font-black uppercase tracking-tighter text-charcoal"
           >
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded p-1 text-slate transition hover:bg-charcoal/5 hover:text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral"
+            className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded text-slate transition hover:bg-charcoal/5 hover:text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral"
             aria-label="Close"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </button>
         </div>
-        <div className="px-6 py-4">{children}</div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6">
+          {children}
+        </div>
+
+        {footer && (
+          <div className="shrink-0 border-t border-slate/20 bg-cream px-4 py-3 sm:px-6 sm:py-4">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   )

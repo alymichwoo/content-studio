@@ -15,6 +15,7 @@ import Button from '../ui/Button'
 import Input from '../ui/Input'
 import Modal from '../ui/Modal'
 import Select from '../ui/Select'
+import { iconButtonClass, iconButtonDangerClass, modalFooterClass } from '../ui/iconButtonStyles'
 
 const PLATFORM_FIELDS = {
   tiktok: [
@@ -262,7 +263,7 @@ export default function MetricsModal({ open, onClose, post }) {
                     required
                   />
 
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                     {fields.map(({ key, label }) => (
                       <Input
                         key={key}
@@ -279,7 +280,7 @@ export default function MetricsModal({ open, onClose, post }) {
                 </>
               )}
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div className={modalFooterClass}>
                 <Button type="submit" disabled={!platform || isSaving}>
                   {isSaving
                     ? 'Saving…'
@@ -336,42 +337,96 @@ export default function MetricsModal({ open, onClose, post }) {
                                       metric.platform,
                                       metric,
                                     )
+                                    const loggedFields = (PLATFORM_FIELDS[metric.platform] ?? []).filter(
+                                      ({ key }) => metric[key] != null,
+                                    )
+
                                     return (
                                       <li
                                         key={metric.id}
-                                        className="flex items-center justify-between gap-3 px-3 py-2"
+                                        className="border-b border-slate/10 last:border-0"
                                       >
-                                        <div className="min-w-0 flex-1">
-                                          <p className="text-sm font-semibold text-charcoal">
-                                            {engagement ?? '—'}{' '}
-                                            <span className="font-normal text-slate">
-                                              engagement
-                                            </span>
-                                          </p>
-                                          <p className="truncate text-xs text-slate">
-                                            {(PLATFORM_FIELDS[metric.platform] ?? [])
-                                              .filter(({ key }) => metric[key] != null)
-                                              .map(({ key, label }) => `${label}: ${metric[key]}`)
-                                              .join(' · ') || 'No values logged'}
-                                          </p>
+                                        {/* Mobile: stacked label/value card */}
+                                        <div className="space-y-2 px-3 py-3 md:hidden">
+                                          <div className="flex items-start justify-between gap-2">
+                                            <div>
+                                              <p className="text-xs font-bold uppercase tracking-wider text-slate">
+                                                Engagement
+                                              </p>
+                                              <p className="mt-0.5 text-sm font-semibold text-charcoal">
+                                                {engagement ?? '—'}
+                                              </p>
+                                            </div>
+                                            <div className="flex shrink-0 items-center gap-1">
+                                              <button
+                                                type="button"
+                                                onClick={() => startEdit(metric)}
+                                                className={iconButtonClass}
+                                                aria-label="Edit recording"
+                                              >
+                                                <Pencil className="h-4 w-4" />
+                                              </button>
+                                              <button
+                                                type="button"
+                                                onClick={() => setDeleteTarget(metric)}
+                                                className={iconButtonDangerClass}
+                                                aria-label="Delete recording"
+                                              >
+                                                <Trash2 className="h-4 w-4" />
+                                              </button>
+                                            </div>
+                                          </div>
+                                          {loggedFields.length > 0 ? (
+                                            <dl className="grid grid-cols-2 gap-x-3 gap-y-2">
+                                              {loggedFields.map(({ key, label }) => (
+                                                <div key={key}>
+                                                  <dt className="text-xs font-bold uppercase tracking-wider text-slate">
+                                                    {label}
+                                                  </dt>
+                                                  <dd className="mt-0.5 text-sm text-charcoal">
+                                                    {metric[key]}
+                                                  </dd>
+                                                </div>
+                                              ))}
+                                            </dl>
+                                          ) : (
+                                            <p className="text-xs text-slate">No values logged</p>
+                                          )}
                                         </div>
-                                        <div className="flex shrink-0 items-center gap-1">
-                                          <button
-                                            type="button"
-                                            onClick={() => startEdit(metric)}
-                                            className="rounded p-1.5 text-slate transition hover:bg-charcoal/5 hover:text-charcoal"
-                                            aria-label="Edit recording"
-                                          >
-                                            <Pencil className="h-4 w-4" />
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={() => setDeleteTarget(metric)}
-                                            className="rounded p-1.5 text-slate transition hover:bg-coral/10 hover:text-coral"
-                                            aria-label="Delete recording"
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </button>
+
+                                        {/* Desktop: horizontal row */}
+                                        <div className="hidden items-center justify-between gap-3 px-3 py-2 md:flex">
+                                          <div className="min-w-0 flex-1">
+                                            <p className="text-sm font-semibold text-charcoal">
+                                              {engagement ?? '—'}{' '}
+                                              <span className="font-normal text-slate">
+                                                engagement
+                                              </span>
+                                            </p>
+                                            <p className="truncate text-xs text-slate">
+                                              {loggedFields
+                                                .map(({ key, label }) => `${label}: ${metric[key]}`)
+                                                .join(' · ') || 'No values logged'}
+                                            </p>
+                                          </div>
+                                          <div className="flex shrink-0 items-center gap-1">
+                                            <button
+                                              type="button"
+                                              onClick={() => startEdit(metric)}
+                                              className={iconButtonClass}
+                                              aria-label="Edit recording"
+                                            >
+                                              <Pencil className="h-4 w-4" />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              onClick={() => setDeleteTarget(metric)}
+                                              className={iconButtonDangerClass}
+                                              aria-label="Delete recording"
+                                            >
+                                              <Trash2 className="h-4 w-4" />
+                                            </button>
+                                          </div>
                                         </div>
                                       </li>
                                     )
@@ -394,22 +449,20 @@ export default function MetricsModal({ open, onClose, post }) {
         onClose={() => setDeleteTarget(null)}
         title="Delete recording"
         size="sm"
+        footer={
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDelete} disabled={deleteMetric.isPending}>
+              {deleteMetric.isPending ? 'Deleting…' : 'Delete'}
+            </Button>
+          </div>
+        }
       >
         <p className="text-sm text-charcoal">
           Delete this metrics recording? This cannot be undone.
         </p>
-        <div className="mt-6 flex justify-end gap-3">
-          <Button variant="ghost" onClick={() => setDeleteTarget(null)}>
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            onClick={handleDelete}
-            disabled={deleteMetric.isPending}
-          >
-            {deleteMetric.isPending ? 'Deleting…' : 'Delete'}
-          </Button>
-        </div>
       </Modal>
     </>
   )

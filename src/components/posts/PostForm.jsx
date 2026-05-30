@@ -25,6 +25,7 @@ import Select from '../ui/Select'
 import GroupedSelect from '../ui/GroupedSelect'
 import MultiSelect from '../ui/MultiSelect'
 import Modal from '../ui/Modal'
+import { modalFooterClass } from '../ui/iconButtonStyles'
 
 const postFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -265,7 +266,7 @@ export default function PostForm({ open, onClose, post, onSuccess }) {
           {...register('title')}
         />
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <Controller
             name="pillar"
             control={control}
@@ -298,7 +299,7 @@ export default function PostForm({ open, onClose, post, onSuccess }) {
           />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <Controller
             name="post_type"
             control={control}
@@ -332,7 +333,7 @@ export default function PostForm({ open, onClose, post, onSuccess }) {
           />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <Input
             id="scheduled_date"
             label="Scheduled date"
@@ -429,7 +430,7 @@ export default function PostForm({ open, onClose, post, onSuccess }) {
           <div className="mt-2 space-y-1">
             <p className="text-xs text-slate">{captionLength} characters</p>
             {selectedPlatforms.length > 0 && (
-              <ul className="space-y-0.5">
+              <ul className="flex flex-wrap gap-x-4 gap-y-1">
                 {selectedPlatforms.map((platform) => {
                   const limit = CAPTION_LIMITS[platform]
                   const over = captionLength > limit
@@ -456,7 +457,7 @@ export default function PostForm({ open, onClose, post, onSuccess }) {
           {...register('notes')}
         />
 
-        <div className="flex justify-end gap-3 border-t border-slate/20 pt-4">
+        <div className={modalFooterClass}>
           <Button type="button" variant="ghost" onClick={onClose}>
             Cancel
           </Button>
