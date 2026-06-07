@@ -6,6 +6,7 @@ import {
   Handshake,
   LayoutDashboard,
   BarChart3,
+  Sparkles,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
@@ -15,6 +16,7 @@ export const navItems = [
   { to: '/ideas', label: 'Ideas', icon: Lightbulb },
   { to: '/partnerships', label: 'Partnerships', icon: Handshake },
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/generate', label: 'Generate', icon: Sparkles },
   { to: '/report', label: 'Report', icon: BarChart3 },
 ]
 

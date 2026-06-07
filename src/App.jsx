@@ -10,6 +10,7 @@ import Ideas from './pages/Ideas'
 import Partnerships from './pages/Partnerships'
 import Dashboard from './pages/Dashboard'
 import Report from './pages/Report'
+import Generate from './pages/Generate'
 import Settings from './pages/Settings'
 
 function ProtectedPage({ children }) {
@@ -69,6 +70,14 @@ export default function App() {
               element={
                 <ProtectedPage>
                   <Report />
+                </ProtectedPage>
+              }
+            />
+            <Route
+              path="/generate"
+              element={
+                <ProtectedPage>
+                  <Generate />
                 </ProtectedPage>
               }
             />

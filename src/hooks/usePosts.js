@@ -53,6 +53,37 @@ export function useCreatePost() {
   })
 }
 
+/** Map generated suggestions to posts and insert in one request. */
+export function useBulkCreatePosts() {
+  const queryClient = useQueryClient()
+  const { user } = useAuth()
+
+  return useMutation({
+    mutationFn: async (suggestions) => {
+      const rows = suggestions.map((suggestion) => ({
+        user_id: user.id,
+        title: suggestion.title,
+        hook: suggestion.hook,
+        caption: suggestion.caption,
+        notes: suggestion.notes,
+        pillar: suggestion.pillar,
+        platforms: suggestion.platforms,
+        post_type: suggestion.post_type,
+        scheduled_date: suggestion.scheduled_date,
+        status: 'idea',
+        series: null,
+        deliverable_id: null,
+        archived: false,
+      }))
+
+      const { data, error } = await supabase.from('posts').insert(rows).select()
+      if (error) throw error
+      return data
+    },
+    onSuccess: () => invalidatePosts(queryClient),
+  })
+}
+
 export function useUpdatePost() {
   const queryClient = useQueryClient()
 
