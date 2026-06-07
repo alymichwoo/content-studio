@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { inputClass } from '../components/ui/fieldStyles'
 
 const signInSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Enter a valid email'),
@@ -17,9 +18,6 @@ const signUpSchema = signInSchema.extend({
     .min(1, 'Handle is required')
     .regex(/^[a-zA-Z0-9_]+$/, 'Letters, numbers, and underscores only'),
 })
-
-const inputClass =
-  'w-full rounded border border-slate/30 bg-cream px-3 py-2 text-sm text-charcoal placeholder:text-slate/60 focus:border-coral focus:outline-none focus:ring-1 focus:ring-coral'
 
 function FieldError({ message }) {
   if (!message) return null
@@ -85,7 +83,7 @@ export default function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-cream px-4">
+    <div className="flex min-h-screen min-h-dvh items-center justify-center bg-cream px-4">
       <div className="w-full max-w-md rounded-lg bg-charcoal p-8 shadow-lg">
         <h1 className="text-center text-2xl font-black uppercase tracking-tighter text-cream md:text-3xl">
           {isSignUp ? 'Create account' : 'Sign in'}

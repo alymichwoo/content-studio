@@ -7,10 +7,10 @@ export default function AppShell({ title, children }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-cream">
+    <div className="min-h-screen min-h-dvh overflow-x-hidden bg-cream">
       <Sidebar />
       <MobileNavDrawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
-      <div className="flex min-h-screen flex-col md:pl-56">
+      <div className="flex min-h-screen min-h-dvh flex-col md:pl-56">
         <TopBar
           title={title}
           mobileNavOpen={mobileNavOpen}
